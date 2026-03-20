@@ -1,7 +1,7 @@
 {
   "name": "unplugin-auto-git-info",
   "type": "module",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "packageManager": "pnpm@10.27.0",
   "description": "Unplugin for automatically generating Git information (repo, branch, commit, etc.) in multiple output formats.",
   "author": "Drswith",
