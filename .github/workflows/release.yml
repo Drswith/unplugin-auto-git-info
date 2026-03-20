@@ -40,7 +40,6 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          registry-url: https://registry.npmjs.org/
 
       - name: Setup
         run: npm i -g @antfu/ni
@@ -52,6 +51,4 @@ jobs:
         run: nr build
 
       - name: Publish to npm
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance
