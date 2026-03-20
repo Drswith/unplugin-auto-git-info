@@ -21,7 +21,7 @@ jobs:
       - name: Set node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: lts/*
 
       - run: npx changelogithub
         env:
@@ -38,7 +38,7 @@ jobs:
       - name: Set node version to lts/*
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: lts/*
           cache: pnpm
 
       - name: Setup
@@ -51,4 +51,4 @@ jobs:
         run: nr build
 
       - name: Publish to npm
-        run: npm publish --provenance
+        run: npm publish
