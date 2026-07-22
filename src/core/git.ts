@@ -41,14 +41,23 @@ function isGitRepository(cwd?: string): boolean {
 /**
  * 安全执行 Git 命令
  */
-function execGitCommand(command: string, cwd?: string): string {
+function execGitCommand(command: string, cwd?: string, silent = false): string {
   try {
     return execSync(command, { cwd, encoding: 'utf8', stdio: 'pipe' }).trim()
   }
   catch (error) {
-    console.warn(`[unplugin-auto-git-info] Git command failed: ${command}`, error)
+    if (!silent) {
+      console.warn(`[unplugin-auto-git-info] Git command failed: ${command}`, error)
+    }
     return ''
   }
+}
+
+/**
+ * 获取当前提交的精确 tag。未命中 tag 是正常情况，因此不输出告警。
+ */
+function getExactTag(cwd?: string): string {
+  return execGitCommand('git describe --tags --exact-match HEAD', cwd, true)
 }
 
 /**
@@ -99,10 +108,7 @@ export function getGitInfo(fields: string[] = [], cwd?: string): GitInfo {
         // 处理 detached HEAD 状态
         if (branch === 'HEAD') {
           // 尝试获取 tag
-          const tag = execGitCommand(
-            'git describe --tags --exact-match HEAD 2>/dev/null',
-            cwd,
-          )
+          const tag = getExactTag(cwd)
           if (tag) {
             result.branch = tag
           }
@@ -166,10 +172,7 @@ export function getGitInfo(fields: string[] = [], cwd?: string): GitInfo {
       }
 
       case 'tag': {
-        const tag = execGitCommand(
-          'git describe --tags --exact-match HEAD 2>/dev/null',
-          cwd,
-        )
+        const tag = getExactTag(cwd)
         result.tag = tag || ''
         break
       }

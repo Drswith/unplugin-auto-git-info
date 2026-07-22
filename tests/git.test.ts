@@ -1,5 +1,22 @@
-import { describe, expect, it } from 'vitest'
+import { execFileSync } from 'node:child_process'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { describe, expect, it, vi } from 'vitest'
 import { getAvailableFields, getGitInfo } from '../src/core/git'
+
+function createDetachedRepository(): string {
+  const cwd = mkdtempSync(join(tmpdir(), 'unplugin-auto-git-info-'))
+  const git = (...args: string[]) => execFileSync('git', args, { cwd, stdio: 'pipe' })
+
+  git('init')
+  writeFileSync(join(cwd, 'fixture.txt'), 'fixture\n')
+  git('add', 'fixture.txt')
+  git('-c', 'user.name=Test User', '-c', 'user.email=test@example.com', 'commit', '-m', 'fixture')
+  git('checkout', '--detach')
+
+  return cwd
+}
 
 describe('git', () => {
   it('should get available fields', () => {
@@ -26,5 +43,22 @@ describe('git', () => {
     // 使用一个不存在的目录
     const info = getGitInfo(['branch'], '/tmp/non-existent-dir-12345')
     expect(info).toEqual({})
+  })
+
+  it('should silently fall back to the short commit in a detached HEAD without a tag', () => {
+    const cwd = createDetachedRepository()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    try {
+      const info = getGitInfo(['branch', 'commitShort', 'tag'], cwd)
+
+      expect(info.branch).toBe(info.commitShort)
+      expect(info.tag).toBe('')
+      expect(warn).not.toHaveBeenCalled()
+    }
+    finally {
+      warn.mockRestore()
+      rmSync(cwd, { recursive: true, force: true })
+    }
   })
 })

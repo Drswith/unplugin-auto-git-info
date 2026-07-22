@@ -1,6 +1,9 @@
 # unplugin-auto-git-info
 
+[![NPM version][npm-version-src]][npm-href]
+[![NPM downloads][npm-downloads-src]][npm-href]
 [![Unit Test][unit-test-src]][unit-test-href]
+[![License][license-src]][license-href]
 
 Unplugin for automatically generating Git information (repo, branch, commit, etc.) in multiple output formats.
 
@@ -264,5 +267,10 @@ console.log(window.__GIT_INFO__.commit)
 
 <!-- Badges -->
 
+[npm-version-src]: https://img.shields.io/npm/v/unplugin-auto-git-info?color=32C754&labelColor=1B3A2B
+[npm-downloads-src]: https://img.shields.io/npm/dm/unplugin-auto-git-info?color=32C754&labelColor=1B3A2B
+[npm-href]: https://www.npmjs.com/package/unplugin-auto-git-info
 [unit-test-src]: https://github.com/Drswith/unplugin-auto-git-info/actions/workflows/unit-test.yml/badge.svg
 [unit-test-href]: https://github.com/Drswith/unplugin-auto-git-info/actions/workflows/unit-test.yml
+[license-src]: https://img.shields.io/github/license/Drswith/unplugin-auto-git-info?color=32C754&labelColor=1B3A2B
+[license-href]: https://github.com/Drswith/unplugin-auto-git-info/blob/main/LICENSE
