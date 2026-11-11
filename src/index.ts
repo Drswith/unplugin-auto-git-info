@@ -55,7 +55,7 @@ function generateGitInfoFiles(
   }
 
   // 获取 Git 信息
-  const gitInfo = getGitInfo(options.fields, options.cwd)
+  const gitInfo = getGitInfo(options.fields, options.cwd, options.redact)
 
   // 如果没有配置任何输出，默认生成 JSON
   const hasOutputs
@@ -85,7 +85,7 @@ export const AutoGitInfo: UnpluginInstance<Options | undefined, false>
 
     // 在插件初始化时获取 Git 信息，用于 define 替换和 HTML 注入
     if (options.enable && options.outputs?.window) {
-      gitInfo = getGitInfo(options.fields, options.cwd)
+      gitInfo = getGitInfo(options.fields, options.cwd, options.redact)
     }
 
     return {
@@ -115,7 +115,8 @@ export const AutoGitInfo: UnpluginInstance<Options | undefined, false>
           }
 
           // 生成注入的 script 代码
-          const gitInfoJson = JSON.stringify(gitInfo)
+          // 防止字段值中的 </script> 提前结束脚本。
+          const gitInfoJson = JSON.stringify(gitInfo).replace(/</g, '\\u003C')
           const consoleLog = shouldConsole
             ? `\n  console.log('[Git Info]', window.${varName});`
             : ''
@@ -127,7 +128,7 @@ export const AutoGitInfo: UnpluginInstance<Options | undefined, false>
 </script>`
 
           // 在 </head> 之前注入，确保在所有代码执行前设置全局变量
-          return html.replace('</head>', `  ${scriptCode}\n</head>`)
+          return html.replace('</head>', () => `  ${scriptCode}\n</head>`)
         },
       },
 

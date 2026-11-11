@@ -1,4 +1,4 @@
-import type { GitField } from './git'
+import type { GitField, RedactOptions } from './git'
 import type { OutputOptions } from './outputs'
 
 /**
@@ -9,13 +9,15 @@ export interface Options {
   enable?: boolean
   /** 需要提取的 Git 字段列表，默认：所有可用字段 */
   fields?: GitField[] | string[]
+  /** 按字段替换或转换 Git 信息 */
+  redact?: RedactOptions
   /** 输出选项配置 */
   outputs?: OutputOptions
   /** 工作目录，默认为当前目录 */
   cwd?: string
 }
 
-export type OptionsResolved = Omit<Pick<Options, 'enable' | 'fields' | 'outputs' | 'cwd'>, 'outputs'> & {
+export type OptionsResolved = Omit<Options, 'outputs'> & {
   outputs: OutputOptions
 }
 
@@ -43,6 +45,7 @@ export function resolveOptions(options: Options = {}): OptionsResolved {
   return {
     enable: options.enable !== undefined ? options.enable : true,
     fields: options.fields || DEFAULT_FIELDS,
+    redact: options.redact,
     outputs: options.outputs || {},
     cwd: options.cwd,
   }

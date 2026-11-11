@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import process from 'node:process'
 import { getGitInfo } from './core/git'
+import { resolveOptions } from './core/options'
 import { generateOutputs } from './core/outputs'
 
 /**
@@ -94,43 +95,19 @@ function parseArgs(): Partial<Options> {
 export function runCLI(): void {
   const args = parseArgs()
 
-  // 如果没有指定 outputs，使用默认配置
-  const options: Options = {
-    fields: args.fields || [
-      'repo',
-      'branch',
-      'commit',
-      'commitShort',
-      'author',
-      'authorEmail',
-      'commitTime',
-      'commitMessage',
-      'isDirty',
-    ],
-    outputs: args.outputs || {
-      json: { fileName: 'git-info.json' },
-    },
-    cwd: args.cwd,
-  }
+  const options = resolveOptions({ ...args, outputs: args.outputs || { json: {} } })
 
   try {
     // 获取 Git 信息
-    const gitInfo = getGitInfo(options.fields, options.cwd)
+    const gitInfo = getGitInfo(options.fields, options.cwd, options.redact)
 
     if (Object.keys(gitInfo).length === 0) {
       console.warn('警告: 未检测到 Git 仓库或无法获取 Git 信息')
       process.exit(0)
     }
 
-    // 生成输出
-    if (options.outputs) {
-      generateOutputs(gitInfo, options.outputs, options.cwd)
-      console.log('✓ Git 信息已生成')
-    }
-    else {
-      // 如果没有配置输出，直接打印到控制台
-      console.log(JSON.stringify(gitInfo, null, 2))
-    }
+    generateOutputs(gitInfo, options.outputs, options.cwd)
+    console.log('✓ Git 信息已生成')
   }
   catch (error) {
     console.error('错误:', error)

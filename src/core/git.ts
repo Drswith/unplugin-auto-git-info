@@ -16,7 +16,10 @@ export type GitField
     | 'remoteUrl'
     | 'root'
 
-export type GitInfo = Record<string, string | boolean>
+type GitInfoValue = string | boolean
+
+export type GitInfo = Record<string, GitInfoValue>
+export type RedactOptions = Partial<Record<GitField | `custom:${string}`, GitInfoValue | ((value: GitInfoValue) => GitInfoValue)>>
 
 /**
  * 检查当前目录是否是 Git 仓库
@@ -71,9 +74,14 @@ function getGitRoot(cwd?: string): string {
  * 获取 Git 信息
  * @param fields 需要提取的 Git 字段列表
  * @param cwd 工作目录，默认为当前目录
+ * @param redact 按字段替换或转换 Git 信息
  * @returns Git 信息对象，包含所有请求的字段
  */
-export function getGitInfo(fields: string[] = [], cwd?: string): GitInfo {
+export function getGitInfo(fields: string[] = [], cwd?: string, redact?: RedactOptions): GitInfo {
+  if (redact !== undefined && (redact === null || typeof redact !== 'object' || Array.isArray(redact))) {
+    throw new TypeError('The redact option must be a field map')
+  }
+
   const result: GitInfo = {}
 
   if (!isGitRepository(cwd)) {
@@ -207,6 +215,21 @@ export function getGitInfo(fields: string[] = [], cwd?: string): GitInfo {
         }
         break
     }
+  }
+
+  for (const [field, rule] of Object.entries(redact ?? {})) {
+    if (!field.startsWith('custom:') && !getAvailableFields().includes(field as GitField)) {
+      throw new TypeError(`Unknown Git field in redact: "${field}"`)
+    }
+    if (!Object.hasOwn(result, field)) {
+      continue
+    }
+
+    const value = typeof rule === 'function' ? rule(result[field]) : rule
+    if (typeof value !== 'string' && typeof value !== 'boolean') {
+      throw new TypeError(`The redact rule for "${field}" must produce a string or boolean`)
+    }
+    result[field] = value
   }
 
   return result
