@@ -164,6 +164,35 @@ AutoGitInfo({
 })
 ```
 
+### Redact Git Fields
+
+Use `redact` to keep selected fields and replace their values before writing JSON or injecting browser output. Each rule can be a fixed string or boolean, or a function that receives the original value and returns a string or boolean.
+
+```ts
+AutoGitInfo({
+  fields: ['repo', 'authorEmail', 'commitShort'],
+  redact: {
+    repo: 'public-app',
+    authorEmail: value => String(value).replace(/^[^@]+/, '***'),
+  },
+  outputs: { json: {}, window: {} },
+})
+```
+
+Only fields included in the output are eligible for replacement. Fields without a rule keep their original values. An unknown field name in `redact` stops generation. Use a fixed value such as `'[redacted]'` to hide the entire email address, including its domain.
+
+The CLI accepts fixed replacements in a JSON config file. Run `unplugin-auto-git-info --config ./git-info.config.json` with a config like this.
+
+```json
+{
+  "fields": ["repo", "authorEmail", "commitShort"],
+  "redact": {
+    "repo": "public-app",
+    "authorEmail": "[redacted]"
+  }
+}
+```
+
 ### Disable the Plugin
 
 You can conditionally disable the plugin based on environment:
